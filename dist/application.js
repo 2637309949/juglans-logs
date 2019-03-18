@@ -17,16 +17,7 @@ const is = require('is');
 
 const moment = require('moment');
 
-function measure(start, end, ctx) {
-  const delta = end - start;
-  const status = ctx.status || 404;
-  const timeDelta = delta < 10000 ? delta + 'ms' : Math.round(delta / 1000) + 's';
-  return {
-    status,
-    timeDelta,
-    delta
-  };
-}
+const utils = require('./utils');
 
 module.exports = (_ref) => {
   let {
@@ -53,36 +44,35 @@ module.exports = (_ref) => {
               const accessData = ctx.state.accessData;
               const formatTime = moment().format('YYYY-MM-DD HH:mm:ss');
               const reqForm = {
-                ip: ctx.ip,
-                accessData,
+                href: ctx.request.href,
                 method: ctx.method.toUpperCase(),
-                url: ctx.request.url.toLowerCase(),
                 headers: ctx.headers,
-                query: ctx.query,
-                body: ctx.request.body
+                payload: ctx.request.body,
+                netaddress: ctx.ip,
+                accessData
               };
 
               if (accessData) {
                 reqForm.accessData = accessData;
 
                 if (reqForm.requestUrl.startsWith(prefix)) {
-                  logInfo = `${formatTime} [${reqForm.accessData.username}] ${reqForm.method} ${reqForm.url}`;
+                  logInfo = `${formatTime} [${reqForm.accessData.username}] ${reqForm.method} ${reqForm.href}`;
                   yield record(reqForm);
                 }
               } else if (ctx.state.fakeToken) {
-                logInfo = `${formatTime} [FAKE TOKEN]: ${reqForm.method} ${reqForm.url}`;
+                logInfo = `${formatTime} [FT]: ${reqForm.method} ${reqForm.href}`;
               } else if (ctx.state.fakeUrl) {
-                logInfo = `${formatTime} [FAKE URL]: ${reqForm.method} ${reqForm.url}`;
+                logInfo = `${formatTime} [FU]: ${reqForm.method} ${reqForm.href}`;
               } else {
-                logInfo = `${formatTime} [UNAUTHORIZED]: ${reqForm.method} ${reqForm.url}`;
+                logInfo = `${formatTime} [UD]: ${reqForm.method} ${reqForm.href}`;
               }
 
               yield next();
               const {
-                timeDelta,
+                delta,
                 status
-              } = measure(start, Date.now(), ctx);
-              console.log(`=> ${logInfo} ${status} ${timeDelta}`);
+              } = utils.measure(start, Date.now(), ctx);
+              console.log(`=> ${logInfo} ${status} ${delta}`);
             } catch (err) {
               throw err;
             }
