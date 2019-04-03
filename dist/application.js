@@ -19,25 +19,35 @@ const moment = require('moment');
 
 const utils = require('./utils');
 
-module.exports = (_ref) => {
+function formatPrint(_ref) {
+  let {
+    formatTime,
+    type,
+    method,
+    href
+  } = _ref;
+  return `${formatTime} [${type}] ${method} ${href}`;
+}
+
+module.exports = (_ref2) => {
   let {
     record = () => {}
-  } = _ref;
+  } = _ref2;
   return (
     /*#__PURE__*/
     function () {
-      var _ref3 = _asyncToGenerator(function* (_ref2) {
+      var _ref4 = _asyncToGenerator(function* (_ref3) {
         let {
           router,
           config: {
             prefix
           }
-        } = _ref2;
-        assert.ok(is.function(record), 'record should be func type');
+        } = _ref3;
+        assert.ok(is.function(record), 'Record parameter should be func type');
         router.use(
         /*#__PURE__*/
         function () {
-          var _ref4 = _asyncToGenerator(function* (ctx, next) {
+          var _ref5 = _asyncToGenerator(function* (ctx, next) {
             try {
               let logInfo;
               const start = Date.now();
@@ -56,8 +66,14 @@ module.exports = (_ref) => {
                 reqForm.accessData = accessData;
 
                 if (reqForm.requestUrl.startsWith(prefix)) {
+                  formatPrint({
+                    formatTime,
+                    type: reqForm.accessData.username,
+                    method: reqForm.method,
+                    href: reqForm.href
+                  });
                   logInfo = `${formatTime} [${reqForm.accessData.username}] ${reqForm.method} ${reqForm.href}`;
-                  yield record(reqForm);
+                  record(reqForm);
                 }
               } else if (ctx.state.fakeToken) {
                 logInfo = `${formatTime} [FT]: ${reqForm.method} ${reqForm.href}`;
@@ -67,25 +83,26 @@ module.exports = (_ref) => {
                 logInfo = `${formatTime} [UD]: ${reqForm.method} ${reqForm.href}`;
               }
 
+              console.log(`=> ${logInfo}`);
               yield next();
               const {
                 delta,
                 status
               } = utils.measure(start, Date.now(), ctx);
-              console.log(`=> ${logInfo} ${status} ${delta}`);
+              console.log(`<= ${logInfo} ${status} ${delta}`);
             } catch (err) {
               throw err;
             }
           });
 
           return function (_x2, _x3) {
-            return _ref4.apply(this, arguments);
+            return _ref5.apply(this, arguments);
           };
         }());
       });
 
       return function (_x) {
-        return _ref3.apply(this, arguments);
+        return _ref4.apply(this, arguments);
       };
     }()
   );
