@@ -19,7 +19,7 @@ const moment = require('moment');
 
 const utils = require('./utils');
 
-const logger = require('../../juglans-addition').logger;
+const logger = require('juglans-addition').logger;
 
 function formatPrint(_ref) {
   let {
