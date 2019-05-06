@@ -81,7 +81,7 @@ function () {
           reqForm.type = 'IN';
           reqForm.method = ctx.method.toUpperCase();
           reqForm.ip = ctx.ip;
-          reqForm.url = ctx.request.href;
+          reqForm.url = ctx.request.url;
           reqForm.accessData = ctx.state.accessData;
           let info = cfg.format(reqForm, ctx);
           httpLogger(info);
