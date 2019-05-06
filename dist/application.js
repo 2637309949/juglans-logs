@@ -11,9 +11,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  * @modify date 2019-01-09 16:55:19
  * @desc [log]
  */
-const assert = require('assert').strict;
-
-const is = require('is');
+const deepmerge = require('deepmerge');
 
 const moment = require('moment');
 
@@ -31,97 +29,84 @@ function formatPrint(_ref) {
   return `${formatTime} [${type}] ${method} ${href}`;
 }
 
-module.exports = (_ref2) => {
-  let {
-    record = () => {}
-  } = _ref2;
-  return (
+function defaultFormat(payload, ctx) {
+  let type;
+
+  if (payload.accessData) {
+    type = payload.accessData.username;
+  } else if (ctx.state.fakeToken) {
+    type = 'FT';
+  } else if (ctx.state.fakeUrl) {
+    type = 'FU';
+  } else {
+    type = 'UD';
+  }
+
+  if (payload.type === 'IN') {
+    return `=> ${formatPrint({
+      formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
+      type,
+      method: payload.method,
+      href: payload.url
+    })}`;
+  } else if (payload.type === 'OUT') {
+    return `<= ${formatPrint({
+      formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
+      type,
+      method: payload.method,
+      href: payload.url
+    })}`;
+  }
+}
+
+module.exports = cfg =>
+/*#__PURE__*/
+function () {
+  var _ref3 = _asyncToGenerator(function* (_ref2) {
+    let {
+      router,
+      config
+    } = _ref2;
+    cfg = deepmerge.all([cfg, config]);
+    const httpLogger = logger.createHttpLogger(cfg).http;
+    cfg.format = cfg.format || defaultFormat;
+    router.use(
     /*#__PURE__*/
     function () {
-      var _ref4 = _asyncToGenerator(function* (_ref3) {
-        let {
-          router,
-          config
-        } = _ref3;
-        const {
-          prefix
-        } = config;
-        const httpLogger = logger.createHttpLogger(config).http;
-        assert.ok(is.function(record), 'Record parameter should be func type');
-        router.use(
-        /*#__PURE__*/
-        function () {
-          var _ref5 = _asyncToGenerator(function* (ctx, next) {
-            try {
-              let logInfo;
-              const start = Date.now();
-              const accessData = ctx.state.accessData;
-              const formatTime = moment().format('YYYY-MM-DD HH:mm:ss');
-              const reqForm = {
-                href: ctx.request.href,
-                method: ctx.method.toUpperCase(),
-                headers: ctx.headers,
-                payload: ctx.request.body,
-                netaddress: ctx.ip,
-                accessData
-              };
-
-              if (accessData) {
-                reqForm.accessData = accessData;
-
-                if (reqForm.requestUrl.startsWith(prefix)) {
-                  logInfo = formatPrint({
-                    formatTime,
-                    type: reqForm.accessData.username,
-                    method: reqForm.method,
-                    href: reqForm.href
-                  });
-                  record(reqForm);
-                }
-              } else if (ctx.state.fakeToken) {
-                logInfo = formatPrint({
-                  formatTime,
-                  type: 'FT',
-                  method: reqForm.method,
-                  href: reqForm.href
-                });
-              } else if (ctx.state.fakeUrl) {
-                logInfo = formatPrint({
-                  formatTime,
-                  type: 'FU',
-                  method: reqForm.method,
-                  href: reqForm.href
-                });
-              } else {
-                logInfo = formatPrint({
-                  formatTime,
-                  type: 'UD',
-                  method: reqForm.method,
-                  href: reqForm.href
-                });
-              }
-
-              httpLogger(`=> ${logInfo}`);
-              yield next();
-              const {
-                delta,
-                status
-              } = utils.measure(start, Date.now(), ctx);
-              httpLogger(`<= ${logInfo} ${status} ${delta}`);
-            } catch (err) {
-              throw err;
-            }
-          });
-
-          return function (_x2, _x3) {
-            return _ref5.apply(this, arguments);
-          };
-        }());
+      var _ref4 = _asyncToGenerator(function* (ctx, next) {
+        try {
+          const start = Date.now();
+          const reqForm = {};
+          reqForm.startUnix = moment().unix();
+          reqForm.type = 'IN';
+          reqForm.method = ctx.method.toUpperCase();
+          reqForm.ip = ctx.ip;
+          reqForm.url = ctx.request.href;
+          reqForm.accessData = ctx.state.accessData;
+          let info = cfg.format(reqForm, ctx);
+          httpLogger(info);
+          yield next();
+          reqForm.type = 'OUT';
+          reqForm.endUnix = moment().unix();
+          reqForm.latency = reqForm.endUnix - reqForm.startUnix;
+          const {
+            delta,
+            status
+          } = utils.measure(start, Date.now(), ctx);
+          info = cfg.format(reqForm, ctx);
+          httpLogger(`${info} ${status} ${delta}`);
+        } catch (err) {
+          throw err;
+        }
       });
 
-      return function (_x) {
+      return function (_x2, _x3) {
         return _ref4.apply(this, arguments);
       };
-    }()
-  );
-};
+    }());
+  });
+
+  return function (_x) {
+    return _ref3.apply(this, arguments);
+  };
+}();
