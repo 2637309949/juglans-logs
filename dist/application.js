@@ -9,7 +9,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  * @email [2637309949@qq.com]
  * @create date 2019-01-09 16:55:19
  * @modify date 2019-01-09 16:55:19
- * @desc [log]
+ * @desc [http logger]
  */
 const deepmerge = require('deepmerge');
 
@@ -17,7 +17,7 @@ const moment = require('moment');
 
 const utils = require('./utils');
 
-const logger = require('juglans-addition').logger;
+const createLogger = require('./logger');
 
 function formatPrint(_ref) {
   let {
@@ -68,7 +68,7 @@ function () {
       config
     } = _ref2;
     cfg = deepmerge.all([cfg, config]);
-    const httpLogger = logger.createHttpLogger(cfg).http;
+    const logger = createLogger(cfg);
     cfg.format = cfg.format || defaultFormat;
     router.use(
     /*#__PURE__*/
@@ -84,7 +84,7 @@ function () {
           reqForm.url = ctx.request.url;
           reqForm.accessData = ctx.state.accessData;
           let info = cfg.format(reqForm, ctx);
-          httpLogger(info);
+          logger.http(info);
           yield next();
           reqForm.type = 'OUT';
           reqForm.endUnix = moment().unix();
@@ -94,7 +94,7 @@ function () {
             status
           } = utils.measure(start, Date.now(), ctx);
           info = cfg.format(reqForm, ctx);
-          httpLogger(`${info} ${status} ${delta}`);
+          logger.http(`${info} ${status} ${delta}`);
         } catch (err) {
           throw err;
         }

@@ -60,6 +60,7 @@
     "is": "^3.3.0",
     "juglans-addition": "^1.0.1",
     "koa-roles": "^2.0.0",
-    "moment": "^2.24.0"
+    "moment": "^2.24.0",
+    "winston": "^3.2.1"
   }
 }
