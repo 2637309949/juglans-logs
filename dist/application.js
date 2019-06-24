@@ -11,11 +11,13 @@ const deepmerge = require('deepmerge');
 
 const moment = require('moment');
 
+const path = require('path');
+
 const utils = require('./utils');
 
 const createLogger = require('./logger');
 
-function formatPrint(_ref) {
+const FORMAT = (_ref) => {
   let {
     formatTime,
     type,
@@ -23,49 +25,52 @@ function formatPrint(_ref) {
     href
   } = _ref;
   return `${formatTime} [${type}] ${method} ${href}`;
-}
+};
 
-function defaultFormat(payload, ctx) {
-  let type;
+const defaultOpts = {
+  path: path.join(__dirname, '../../logger'),
 
-  if (payload.accessData) {
-    type = payload.accessData.username;
-  } else if (ctx.state.fakeToken) {
-    type = 'FT';
-  } else if (ctx.state.fakeUrl) {
-    type = 'FU';
-  } else {
-    type = 'UD';
+  format(payload, ctx) {
+    let type;
+
+    if (payload.accessData) {
+      type = payload.accessData.username;
+    } else if (ctx.state.fakeToken) {
+      type = 'FT';
+    } else if (ctx.state.fakeUrl) {
+      type = 'FU';
+    } else {
+      type = 'UD';
+    }
+
+    if (payload.type === 'IN') {
+      return `=> ${FORMAT({
+        formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
+        type,
+        method: payload.method,
+        href: payload.url
+      })}`;
+    } else if (payload.type === 'OUT') {
+      return `<= ${FORMAT({
+        formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
+        type,
+        method: payload.method,
+        href: payload.url
+      })}`;
+    }
   }
 
-  if (payload.type === 'IN') {
-    return `=> ${formatPrint({
-      formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
-      type,
-      method: payload.method,
-      href: payload.url
-    })}`;
-  } else if (payload.type === 'OUT') {
-    return `<= ${formatPrint({
-      formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
-      type,
-      method: payload.method,
-      href: payload.url
-    })}`;
-  }
-}
+};
 
 module.exports = cfg =>
 /*#__PURE__*/
 function () {
   var _ref3 = _asyncToGenerator(function* (_ref2) {
     let {
-      router,
-      config
+      router
     } = _ref2;
-    cfg = deepmerge.all([cfg, config]);
+    cfg = deepmerge.all([defaultOpts, cfg]);
     const logger = createLogger(cfg);
-    cfg.format = cfg.format || defaultFormat;
     router.use(
     /*#__PURE__*/
     function () {

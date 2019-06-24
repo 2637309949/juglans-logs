@@ -27,11 +27,9 @@ winston.addColors({
 
 module.exports = (_ref2) => {
   let {
-    logger: {
-      service,
-      maxsize,
-      path: _path
-    }
+    service,
+    maxsize,
+    path: _path
   } = _ref2;
   return winston.createLogger({
     level: 'http',

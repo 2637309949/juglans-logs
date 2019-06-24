@@ -1,69 +1,48 @@
-# juglans-logs
-A plugin for http request print, you can defined your formatter stype
+## juglans-logs
 
-    Debugger listening on ws://127.0.0.1:9229/636cdbe3-9da6-4b12-8a78-2f747eda968e
-    For help see https://nodejs.org/en/docs/inspector
-    key[Config]:name has existed, the same properties will be overridden.
-    key[Config]:name has existed, the same properties will be overridden.
-    key[Config]:prefix has existed, the same properties will be overridden.
-    key[Config]:port has existed, the same properties will be overridden.
-    key[Config]:debug has existed, the same properties will be overridden.
-    key[Config]:logger has existed, the same properties will be overridden.
-    key[Config]:bodyParser has existed, the same properties will be overridden.
-    key[Inject]:config has existed, the same properties will be overridden.
-    key[Inject]:test has existed, the same properties will be overridden.
-    key[Inject]:test has existed, the same properties will be overridden.
-    DEPRECATED: opts.strict has been deprecated in favor of opts.parsedMethods.
-    first message
-    App:juglans test v1.1
-    App:local
-    App:runing on Port:3001
-    Redis:redis://127.0.0.1:6379 connect successfully!
-    Mongodb:mongodb://127.0.0.1:27017/test?authSource=admin connect successfully!
-    2019-05-27T04:01:42.934Z http: => 2019-05-27 12:01:42 [UD] GET /api/v1/user?access_token=DEBUG&accessToken=DEBUG
-    before
-    after
-    2019-05-27T04:01:42.958Z http: <= 2019-05-27 12:01:42 [FT] GET /api/v1/user?access_token=DEBUG&accessToken=DEBUG 200 31ms
+### Example
 
-## Use
 ```javascript
-  // Logs Plugin
-  app.Use(Logs({
-    logger: {
-      path: path.join(__dirname, '../logger')
-    },
-    // default format type
-    format: function (payload, ctx) {
-        let type
-        if (payload.accessData) {
-            type = payload.accessData.username
-        } else if (ctx.state.fakeToken) {
-            type = 'FT'
-        } else if (ctx.state.fakeUrl) {
-            type = 'FU'
-        } else {
-            type = 'UD'
-        }
-        if (payload.type === 'IN') {
-            return `=> ${formatPrint({
-            formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
-            type,
-            method: payload.method,
-            href: payload.url
-            })}`
-        } else if (payload.type === 'OUT') {
-            return `<= ${formatPrint({
-            formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
-            type,
-            method: payload.method,
-            href: payload.url
-            })}`
-        }
-    }
-  }))
+const Logs = Logs({
+  path: path.join(__dirname, '../../logger')
+})
+app.Use(Logs)
 ```
+### API
 
-
+```javascript
+// set diff property if you want
+const defaultOpts = {
+  path: path.join(__dirname, '../../logger'),
+  format (payload, ctx) {
+    let type
+    if (payload.accessData) {
+      type = payload.accessData.username
+    } else if (ctx.state.fakeToken) {
+      type = 'FT'
+    } else if (ctx.state.fakeUrl) {
+      type = 'FU'
+    } else {
+      type = 'UD'
+    }
+    if (payload.type === 'IN') {
+      return `=> ${FORMAT({
+        formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
+        type,
+        method: payload.method,
+        href: payload.url
+      })}`
+    } else if (payload.type === 'OUT') {
+      return `<= ${FORMAT({
+        formatTime: moment(payload.startUnix, 'X').format('YYYY-MM-DD HH:mm:ss'),
+        type,
+        method: payload.method,
+        href: payload.url
+      })}`
+    }
+  }
+}
+```
 ## MIT License
 
 Copyright (c) 2018-2020 Double
