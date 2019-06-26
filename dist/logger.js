@@ -3,10 +3,11 @@
 // Copyright (c) 2018-2020 Double.  All rights reserved.
 // Use of this source code is governed by a MIT style
 // license that can be found in the LICENSE file.
-const winston = require('winston');
-
 const path = require('path');
 
+const logger = require('juglans-addition').logger;
+
+const winston = logger.winston;
 const {
   combine,
   timestamp,
@@ -29,7 +30,7 @@ module.exports = (_ref2) => {
   let {
     service,
     maxsize,
-    path: _path
+    path: dir
   } = _ref2;
   return winston.createLogger({
     level: 'http',
@@ -38,11 +39,11 @@ module.exports = (_ref2) => {
       service
     },
     transports: [new winston.transports.File({
-      filename: path.join(_path, 'http.log'),
+      filename: path.join(dir, 'http.log'),
       level: 'http',
       maxsize
     }), new winston.transports.File({
-      filename: path.join(_path, 'combined.log'),
+      filename: path.join(dir, 'combined.log'),
       maxsize
     }), new winston.transports.Console({
       format
