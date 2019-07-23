@@ -58,7 +58,7 @@
     "deepmerge": "^3.2.0",
     "exceljs": "^1.7.0",
     "is": "^3.3.0",
-    "juglans-addition": "^1.0.3",
+    "juglans-addition": "^1.0.4",
     "koa-roles": "^2.0.0",
     "moment": "^2.24.0"
   }

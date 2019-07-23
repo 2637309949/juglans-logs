@@ -5,48 +5,23 @@
 // license that can be found in the LICENSE file.
 const path = require('path');
 
-const logger = require('juglans-addition').logger;
+const additions = require('juglans-addition');
 
+const logger = additions.logger;
 const winston = logger.winston;
-const {
-  combine,
-  timestamp,
-  printf,
-  colorize
-} = winston.format;
-const format = combine(colorize(), timestamp(), printf((_ref) => {
-  let {
-    level,
-    message,
-    timestamp
-  } = _ref;
-  return `[${level}]: ${timestamp} ${message}`;
-}));
 winston.addColors({
   'http': 'cyan'
 });
 
-module.exports = (_ref2) => {
+module.exports = (_ref) => {
   let {
     service,
     maxsize,
     path: dir
-  } = _ref2;
-  return winston.createLogger({
+  } = _ref;
+  return logger.add(new winston.transports.File({
+    filename: path.join(dir, 'http.log'),
     level: 'http',
-    format,
-    defaultMeta: {
-      service
-    },
-    transports: [new winston.transports.File({
-      filename: path.join(dir, 'http.log'),
-      level: 'http',
-      maxsize
-    }), new winston.transports.File({
-      filename: path.join(dir, 'combined.log'),
-      maxsize
-    }), new winston.transports.Console({
-      format
-    })]
-  });
+    maxsize
+  }));
 };
