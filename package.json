@@ -56,9 +56,9 @@
   },
   "dependencies": {
     "deepmerge": "^3.3.0",
-    "exceljs": "^1.14.0",
+    "exceljs": "^1.15.0",
     "is": "^3.3.0",
-    "juglans-addition": "^1.0.7",
+    "juglans-addition": "^1.0.9",
     "koa-roles": "^2.0.0",
     "moment": "^2.24.0"
   }
